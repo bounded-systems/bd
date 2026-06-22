@@ -4,7 +4,10 @@
   "description": "Typed interface to the beads CLI with policy enforcement and short-ID guards",
   "bounded": {
     "tagline": "Typed interface to the beads CLI with policy enforcement and short-ID guards",
-    "kind": "door"
+    "kind": "door",
+    "facet": "verb",
+    "role": "client",
+    "domain": "beads/tasks"
   },
   "license": "MIT",
   "type": "module",
