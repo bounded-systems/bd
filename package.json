@@ -1,6 +1,6 @@
 {
   "name": "@bounded-systems/bd",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Typed interface to the beads CLI with policy enforcement and short-ID guards",
   "bounded": {
     "tagline": "Typed interface to the beads CLI with policy enforcement and short-ID guards",
@@ -61,8 +61,8 @@
     "zod": "^4.4.3"
   },
   "dependencies": {
-    "@bounded-systems/env": "npm:@jsr/bounded-systems__env",
-    "@bounded-systems/policy": "npm:@jsr/bounded-systems__policy",
-    "@bounded-systems/proc": "npm:@jsr/bounded-systems__proc"
+    "@bounded-systems/env": "npm:@jsr/bounded-systems__env@^0.2.0",
+    "@bounded-systems/policy": "npm:@jsr/bounded-systems__policy@^0.2.1",
+    "@bounded-systems/proc": "npm:@jsr/bounded-systems__proc@^0.2.3"
   }
 }

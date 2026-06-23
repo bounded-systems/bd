@@ -5,9 +5,9 @@
     "": {
       "name": "@bounded-systems/bd",
       "dependencies": {
-        "@bounded-systems/env": "npm:@jsr/bounded-systems__env",
-        "@bounded-systems/policy": "npm:@jsr/bounded-systems__policy",
-        "@bounded-systems/proc": "npm:@jsr/bounded-systems__proc",
+        "@bounded-systems/env": "npm:@jsr/bounded-systems__env@^0.2.0",
+        "@bounded-systems/policy": "npm:@jsr/bounded-systems__policy@^0.2.1",
+        "@bounded-systems/proc": "npm:@jsr/bounded-systems__proc@^0.2.3",
       },
       "devDependencies": {
         "@bounded-systems/schema-gen": "npm:@jsr/bounded-systems__schema-gen@^0.1.0",
@@ -25,9 +25,9 @@
 
     "@bounded-systems/env": ["@jsr/bounded-systems__env@0.2.0", "https://npm.jsr.io/~/11/@jsr/bounded-systems__env/0.2.0.tgz", {}, "sha512-5WqnPWlI4TI30T+FUWFXAQfZWV6epGQwScGeyVGh1ylNsLyscTyVdgiqBtdaJvQ1JGN6YaWqjZ7gq1dQC+THEA=="],
 
-    "@bounded-systems/policy": ["@jsr/bounded-systems__policy@0.2.0", "https://npm.jsr.io/~/11/@jsr/bounded-systems__policy/0.2.0.tgz", {}, "sha512-4zgFOYBcvtIcfiin513amV8Nand1s0tUZIGEOWfCXUX+OjIza/A7arn5NeSYFKnHEHCHfHjO0x90vcJTvNdFvg=="],
+    "@bounded-systems/policy": ["@jsr/bounded-systems__policy@0.2.1", "https://npm.jsr.io/~/11/@jsr/bounded-systems__policy/0.2.1.tgz", {}, "sha512-5ppqxSi1rmo10S07M1zOCGGCWkRkXhXWWQG4XFcGLER+GPbptuitixcUPnMyXMgly8Kc+k8prJWU6nrh/L+X3g=="],
 
-    "@bounded-systems/proc": ["@jsr/bounded-systems__proc@0.2.0", "https://npm.jsr.io/~/11/@jsr/bounded-systems__proc/0.2.0.tgz", { "dependencies": { "@jsr/bounded-systems__env": "^0.2.0", "@jsr/bounded-systems__policy": "^0.2.0", "zod": "^4.4.3" } }, "sha512-RFNqb9+9HvC5MrM4gdMn+DUHK/SJrt30e9z+UwnPnt8K1LpHXGRbPYGXuSWYOJPK++fVuR2c9uG42tecMQxA7g=="],
+    "@bounded-systems/proc": ["@jsr/bounded-systems__proc@0.2.3", "https://npm.jsr.io/~/11/@jsr/bounded-systems__proc/0.2.3.tgz", { "dependencies": { "@jsr/bounded-systems__env": "^0.2.0", "@jsr/bounded-systems__policy": "^0.2.1", "zod": "^4.4.3" } }, "sha512-8wmmmzrwvibCH9qPHJNqKai7+xae1nxEPWWx6C9ADWHFyv8e9WSyK8kvWmnSIRAkhaIAXUGETEGose4l3zpiXg=="],
 
     "@bounded-systems/schema-gen": ["@jsr/bounded-systems__schema-gen@0.1.0", "https://npm.jsr.io/~/11/@jsr/bounded-systems__schema-gen/0.1.0.tgz", { "dependencies": { "json-schema-to-typescript": "^15.0.4", "zod": "^4.4.3" } }, "sha512-x1MZ5FFH1JJb3dPda8CfAI8ImWdM2/9ibQtJ9r7rpftIPFa20sGS2d3vYNpOXKb48ZWIyrau+Zmbi2JtdJ2+rA=="],
 
@@ -35,7 +35,7 @@
 
     "@jsr/bounded-systems__env": ["@jsr/bounded-systems__env@0.2.0", "https://npm.jsr.io/~/11/@jsr/bounded-systems__env/0.2.0.tgz", {}, "sha512-5WqnPWlI4TI30T+FUWFXAQfZWV6epGQwScGeyVGh1ylNsLyscTyVdgiqBtdaJvQ1JGN6YaWqjZ7gq1dQC+THEA=="],
 
-    "@jsr/bounded-systems__policy": ["@jsr/bounded-systems__policy@0.2.0", "https://npm.jsr.io/~/11/@jsr/bounded-systems__policy/0.2.0.tgz", {}, "sha512-4zgFOYBcvtIcfiin513amV8Nand1s0tUZIGEOWfCXUX+OjIza/A7arn5NeSYFKnHEHCHfHjO0x90vcJTvNdFvg=="],
+    "@jsr/bounded-systems__policy": ["@jsr/bounded-systems__policy@0.2.1", "https://npm.jsr.io/~/11/@jsr/bounded-systems__policy/0.2.1.tgz", {}, "sha512-5ppqxSi1rmo10S07M1zOCGGCWkRkXhXWWQG4XFcGLER+GPbptuitixcUPnMyXMgly8Kc+k8prJWU6nrh/L+X3g=="],
 
     "@types/bun": ["@types/bun@1.3.14", "", { "dependencies": { "bun-types": "1.3.14" } }, "sha512-h1hFqFVcvAvD9j9K7ZW7vd82aSA+rTdznZa+5bwvCwqSB1jmmfLcbIWhOLx1/+boy/xmjgCs/OMUL8hRJSmnPw=="],
 
