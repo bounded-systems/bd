@@ -47,12 +47,15 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "schema:gen": "bun run scripts/gen-schema-types.ts",
+    "schema:check": "bun run scripts/gen-schema-types.ts --check"
   },
   "peerDependencies": {
     "zod": "^3.25.0 || ^4.0.0"
   },
   "devDependencies": {
+    "@bounded-systems/schema-gen": "npm:@jsr/bounded-systems__schema-gen@^0.1.0",
     "@types/bun": "^1.3.14",
     "typescript": "^6.0.3",
     "zod": "^4.4.3"
