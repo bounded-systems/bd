@@ -1,0 +1,10 @@
+{
+  "name": {
+    "type": "name",
+    "value": "bd"
+  },
+  "description": {
+    "type": "meta",
+    "value": "Typed interface to the beads CLI with policy enforcement and short-ID guards"
+  }
+}
