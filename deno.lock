@@ -1,0 +1,160 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:@jsr/bounded-systems__env@0.2": "0.2.0",
+    "npm:@jsr/bounded-systems__policy@~0.2.1": "0.2.1",
+    "npm:@jsr/bounded-systems__proc@~0.2.3": "0.2.3",
+    "npm:@jsr/bounded-systems__schema-gen@0.1": "0.1.0",
+    "npm:@types/bun@^1.3.14": "1.3.14",
+    "npm:typescript@^6.0.3": "6.0.3",
+    "npm:zod@^4.4.3": "4.4.3"
+  },
+  "npm": {
+    "@apidevtools/json-schema-ref-parser@11.9.3": {
+      "integrity": "sha512-60vepv88RwcJtSHrD6MjIL6Ta3SOYbgfnkHb+ppAVK+o9mXprRtulx7VlRl3lN3bbvysAfCS7WMVfhUYemB0IQ==",
+      "dependencies": [
+        "@jsdevtools/ono",
+        "@types/json-schema",
+        "js-yaml"
+      ]
+    },
+    "@jsdevtools/ono@7.1.3": {
+      "integrity": "sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg=="
+    },
+    "@jsr/bounded-systems__env@0.2.0": {
+      "integrity": "sha512-5WqnPWlI4TI30T+FUWFXAQfZWV6epGQwScGeyVGh1ylNsLyscTyVdgiqBtdaJvQ1JGN6YaWqjZ7gq1dQC+THEA==",
+      "tarball": "https://npm.jsr.io/~/11/@jsr/bounded-systems__env/0.2.0.tgz"
+    },
+    "@jsr/bounded-systems__policy@0.2.1": {
+      "integrity": "sha512-5ppqxSi1rmo10S07M1zOCGGCWkRkXhXWWQG4XFcGLER+GPbptuitixcUPnMyXMgly8Kc+k8prJWU6nrh/L+X3g==",
+      "tarball": "https://npm.jsr.io/~/11/@jsr/bounded-systems__policy/0.2.1.tgz"
+    },
+    "@jsr/bounded-systems__proc@0.2.3": {
+      "integrity": "sha512-8wmmmzrwvibCH9qPHJNqKai7+xae1nxEPWWx6C9ADWHFyv8e9WSyK8kvWmnSIRAkhaIAXUGETEGose4l3zpiXg==",
+      "dependencies": [
+        "@jsr/bounded-systems__env",
+        "@jsr/bounded-systems__policy",
+        "zod"
+      ],
+      "tarball": "https://npm.jsr.io/~/11/@jsr/bounded-systems__proc/0.2.3.tgz"
+    },
+    "@jsr/bounded-systems__schema-gen@0.1.0": {
+      "integrity": "sha512-x1MZ5FFH1JJb3dPda8CfAI8ImWdM2/9ibQtJ9r7rpftIPFa20sGS2d3vYNpOXKb48ZWIyrau+Zmbi2JtdJ2+rA==",
+      "dependencies": [
+        "json-schema-to-typescript",
+        "zod"
+      ],
+      "tarball": "https://npm.jsr.io/~/11/@jsr/bounded-systems__schema-gen/0.1.0.tgz"
+    },
+    "@types/bun@1.3.14": {
+      "integrity": "sha512-h1hFqFVcvAvD9j9K7ZW7vd82aSA+rTdznZa+5bwvCwqSB1jmmfLcbIWhOLx1/+boy/xmjgCs/OMUL8hRJSmnPw==",
+      "dependencies": [
+        "bun-types"
+      ]
+    },
+    "@types/json-schema@7.0.15": {
+      "integrity": "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="
+    },
+    "@types/lodash@4.17.24": {
+      "integrity": "sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ=="
+    },
+    "@types/node@26.0.0": {
+      "integrity": "sha512-vf2YFi1iY9lHGwNJMs01biZFbKJkrZR1T6/MlzjhJLPdntOHLhTrDSnSVcdtvjihi4VQNlrFRIxLsDBlQpAipA==",
+      "dependencies": [
+        "undici-types"
+      ]
+    },
+    "argparse@2.0.1": {
+      "integrity": "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q=="
+    },
+    "bun-types@1.3.14": {
+      "integrity": "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==",
+      "dependencies": [
+        "@types/node"
+      ]
+    },
+    "fdir@6.5.0_picomatch@4.0.4": {
+      "integrity": "sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==",
+      "dependencies": [
+        "picomatch"
+      ],
+      "optionalPeers": [
+        "picomatch"
+      ]
+    },
+    "is-extglob@2.1.1": {
+      "integrity": "sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ=="
+    },
+    "is-glob@4.0.3": {
+      "integrity": "sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==",
+      "dependencies": [
+        "is-extglob"
+      ]
+    },
+    "js-yaml@4.2.0": {
+      "integrity": "sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==",
+      "dependencies": [
+        "argparse"
+      ],
+      "bin": true
+    },
+    "json-schema-to-typescript@15.0.4": {
+      "integrity": "sha512-Su9oK8DR4xCmDsLlyvadkXzX6+GGXJpbhwoLtOGArAG61dvbW4YQmSEno2y66ahpIdmLMg6YUf/QHLgiwvkrHQ==",
+      "dependencies": [
+        "@apidevtools/json-schema-ref-parser",
+        "@types/json-schema",
+        "@types/lodash",
+        "is-glob",
+        "js-yaml",
+        "lodash",
+        "minimist",
+        "prettier",
+        "tinyglobby"
+      ],
+      "bin": true
+    },
+    "lodash@4.18.1": {
+      "integrity": "sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q=="
+    },
+    "minimist@1.2.8": {
+      "integrity": "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA=="
+    },
+    "picomatch@4.0.4": {
+      "integrity": "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A=="
+    },
+    "prettier@3.8.4": {
+      "integrity": "sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==",
+      "bin": true
+    },
+    "tinyglobby@0.2.17": {
+      "integrity": "sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==",
+      "dependencies": [
+        "fdir",
+        "picomatch"
+      ]
+    },
+    "typescript@6.0.3": {
+      "integrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+      "bin": true
+    },
+    "undici-types@8.3.0": {
+      "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="
+    },
+    "zod@4.4.3": {
+      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@jsr/bounded-systems__env@0.2",
+        "npm:@jsr/bounded-systems__policy@~0.2.1",
+        "npm:@jsr/bounded-systems__proc@~0.2.3",
+        "npm:@jsr/bounded-systems__schema-gen@0.1",
+        "npm:@types/bun@^1.3.14",
+        "npm:typescript@^6.0.3",
+        "npm:zod@^4.4.3"
+      ]
+    }
+  }
+}

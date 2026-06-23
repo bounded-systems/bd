@@ -25,8 +25,7 @@ export const bdShowOutputSchema = z
     sourceSystem: z.string().optional().nullable().describe("Source system identifier"),
     updatedAt: z.string().optional().nullable().describe("Last update timestamp"),
   })
-  .describe("Output from `bd show <id> --json`")
-  .passthrough();
+  .describe("Output from `bd show <id> --json`");
 
 export const bdDuplicatesClusterMemberSchema = z
   .object({
@@ -35,8 +34,7 @@ export const bdDuplicatesClusterMemberSchema = z
     status: z.string().default("").describe("Record status"),
     priority: z.number().int().nullable().default(null).describe("Priority level or null"),
   })
-  .describe("Member of a deduplication cluster")
-  .passthrough();
+  .describe("Member of a deduplication cluster");
 
 export const bdDuplicatesClusterSchema = z
   .object({
@@ -67,5 +65,4 @@ export const bdMergeResultSchema = z
     sources: z.array(z.string()).default([]).describe("Source record IDs merged"),
     applied: z.boolean().default(false).describe("Whether the merge was applied"),
   })
-  .describe("Result from `bd merge`")
-  .passthrough();
+  .describe("Result from `bd merge`");
