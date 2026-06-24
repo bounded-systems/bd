@@ -2,7 +2,7 @@ name: version
 
 # Versioning via the bounded-systems mint capability. Validates .release/ intents
 # (fails closed on a malformed one) and previews the next version on every PR.
-# Pinned to an immutable mint commit SHA; bump when mint tags.
+# Pinned to mint v0.2.0 (immutable commit SHA); bump when mint releases again.
 on:
   push:
     branches: [main]
@@ -13,6 +13,6 @@ permissions:
 
 jobs:
   version:
-    uses: bounded-systems/mint/.github/workflows/version.yml@7bc5c9c0826aa7bcb1fc78c8286ab6cc6311630a # mint
+    uses: bounded-systems/mint/.github/workflows/version.yml@440c191198bdb4c2eabb60b385e5c24cddb01e82 # v0.2.0
     with:
-      ref: 7bc5c9c0826aa7bcb1fc78c8286ab6cc6311630a
+      ref: 440c191198bdb4c2eabb60b385e5c24cddb01e82
