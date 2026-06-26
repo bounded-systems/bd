@@ -39,11 +39,25 @@ export type BdExecOptions = {
   /** If set, enforce policy before executing. */
   state?: PolicyState | undefined;
   role?: PolicyRole | undefined;
+  /**
+   * The local workspace prefix (e.g. `"prx"`). A short id with THIS prefix is a
+   * native, bd-assigned id and is admitted past the I-BF1 short-id guard; a
+   * foreign ref is still refused. Falls back to env `PRX_BEADS_PREFIX`; absent
+   * both, the guard refuses every short id (the lookup-free default).
+   */
+  localPrefix?: string | undefined;
 };
 
 export type BdExecEnv = {
   PRX_CAPABILITY_STATE?: string;
   PRX_AGENT_ROLE?: string;
+  /**
+   * The served clone's workspace prefix (e.g. `"prx"`). Admits native short ids
+   * (prefix === this) past the I-BF1 guard without each caller threading
+   * `localPrefix` — the daemon, which knows its served clone, sets it once.
+   * Mirrors how `PRX_CAPABILITY_STATE`/`PRX_AGENT_ROLE` back `state`/`role`.
+   */
+  PRX_BEADS_PREFIX?: string;
   BEADS_DIR?: string;
   /**
    * The beadsd door name, set by the box profile (prx-asr / prx-634). Its
@@ -111,32 +125,75 @@ const ALLOWED_SUBCOMMANDS = [
 // Canonical long-id shape (workspace-prefixed ts-seq-hex8). Mirror of
 // `BD_LONG_ID_RE` in src/adapters/beads.ts; an exact long id is safe to admit.
 const BD_LONG_ID_RE = /^[a-z][a-z0-9-]*-\d{13,}-\d+-[0-9a-f]{8}$/i;
-// Bare bd short-id shape: lowercase workspace prefix + `-` + digits, nothing
-// trailing. This is the fuzzy-matchable form prx must never hand to bd.
-const BD_SHORT_ID_RE = /^[a-z][a-z0-9-]*-\d+$/;
+// Bare bd short-id shape: workspace prefix + `-` + digits, nothing trailing.
+// Case-INSENSITIVE (mirrors BD_LONG_ID_RE) so foreign uppercase surface forms
+// (`GH-1463`, `NOTION-456`) — the very refs this guard exists to refuse — are
+// caught, not just lowercase native ids. Capture group 1 is the prefix, so a
+// native id (prefix === the local workspace) can be told apart from a foreign
+// ref. This is the fuzzy-matchable form prx must never hand to bd.
+const BD_SHORT_ID_RE = /^([a-z][a-z0-9-]*)-\d+$/i;
 
 /**
- * Scan a bd argv for a bare short-id positional, returning the offending arg
- * (or null). Scoped to id-position only: `--flag` tokens and the value token
- * after a space-form `--flag value` are skipped, so free-text flag values
- * (e.g. `--notes "...ai-home-1463..."`) are exempt. A canonical long id is
- * admitted via {@link BD_LONG_ID_RE}. Pure structural gate — no lookup.
+ * Is `arg` a bare short id that must be REFUSED? True iff it has short-id shape,
+ * is not a canonical long id, and its prefix is NOT the local workspace prefix.
+ *
+ * prx-3vow: a native, bd-assigned short id (prefix === `localPrefix`) is the
+ * canonical id of a real record — bd resolves it by exact match, so it is safe
+ * to admit. A FOREIGN ref (different prefix, or an uppercase `GH-`/`NOTION-`
+ * surface number) is the fuzzy-matchable hazard GH-1473 guards against. When
+ * `localPrefix` is undefined every short id is treated as foreign (refuse all)
+ * — the lookup-free default that predates workspace-prefix plumbing.
  */
-function findShortIdPositional(args: string[]): string | null {
+function isRefusableShortId(arg: string, localPrefix?: string): boolean {
+  if (BD_LONG_ID_RE.test(arg)) return false;
+  const m = BD_SHORT_ID_RE.exec(arg);
+  if (m === null) return false;
+  if (localPrefix !== undefined && m[1]?.toLowerCase() === localPrefix.toLowerCase()) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Scan a bd argv for a refusable bare short id in an id position, returning the
+ * offending arg (or null). Scoped to id-position, but hardened against the two
+ * ways a bare id can hide behind a flag:
+ *   - `--flag value` (space form): the value token is normally the flag's value
+ *     and skipped — UNLESS it is itself a refusable bare id (a positional hidden
+ *     after a value-less/boolean flag, or a bare id passed as a flag value),
+ *     which is then inspected rather than silently consumed.
+ *   - `--flag=value` (inline): the value after `=` is inspected too.
+ * Free-text flag values (`--notes "...ai-home-1463..."`) are not bare ids (the
+ * anchored regex won't match a string with surrounding text), so they stay
+ * exempt. A canonical long id is admitted via {@link BD_LONG_ID_RE}. Native
+ * ids (prefix === `localPrefix`) are admitted via {@link isRefusableShortId}.
+ * Pure structural gate — no lookup.
+ */
+function findShortIdPositional(args: string[], localPrefix?: string): string | null {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === undefined) continue;
     if (arg.startsWith("-")) {
-      // `--flag value` (space form): the next token is the flag's value, not an
-      // id position. `--flag=value` carries its value inline — nothing to skip.
-      if (arg.startsWith("--") && !arg.includes("=")) {
+      // `--flag=value` (inline): a bare id in the value is still a refusable ref
+      // (e.g. `--parent=GH-1463`); free-text values won't match the anchored RE.
+      const eq = arg.indexOf("=");
+      if (eq !== -1) {
+        const value = arg.slice(eq + 1);
+        if (isRefusableShortId(value, localPrefix)) return value;
+        continue;
+      }
+      // `--flag value` (space form): skip the value token — but never skip one
+      // that is itself a refusable bare id (a positional hidden after a
+      // value-less/boolean flag escapes the guard otherwise).
+      if (arg.startsWith("--")) {
         const next = args[i + 1];
-        if (next !== undefined && !next.startsWith("-")) i += 1;
+        if (next !== undefined && !next.startsWith("-") && !isRefusableShortId(next, localPrefix)) {
+          i += 1;
+        }
       }
       continue;
     }
-    if (BD_LONG_ID_RE.test(arg)) continue;
-    if (BD_SHORT_ID_RE.test(arg)) return arg;
+    if (isRefusableShortId(arg, localPrefix)) return arg;
   }
   return null;
 }
@@ -296,7 +353,8 @@ export function execBd(
   // I-BF1). Callers must resolve refs to the canonical long id before reaching
   // this chokepoint — a short id fuzzy-matches an unrelated long id and
   // silently miswires the write.
-  const shortId = findShortIdPositional(opts.args);
+  const localPrefix = opts.localPrefix ?? env.PRX_BEADS_PREFIX;
+  const shortId = findShortIdPositional(opts.args, localPrefix);
   if (shortId) {
     return {
       exitCode: 1,
