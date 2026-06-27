@@ -1,5 +1,15 @@
 # @bounded-systems/bd
 
+## 0.3.0
+
+### Minor Changes
+
+- bd-safe I-BF1 guard: admit native short ids (prefix === the local workspace,
+  via `BdExecOptions.localPrefix` or env `PRX_BEADS_PREFIX`) and harden against
+  the foreign refs it claims to refuse — case-insensitive `GH-`/`NOTION-`
+  surface forms, ids hidden after value-less flags, and inline `--flag=<id>`
+  (prx-3vow). First test coverage for the guard (9-case matrix).
+
 ## 0.2.0
 
 ### Minor Changes
