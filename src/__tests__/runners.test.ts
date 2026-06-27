@@ -171,25 +171,21 @@ describe("bd-safe short-id guard (GH-1473 / I-BF1)", () => {
     }
   });
 
-  test("refuses a short id hidden after a value-less/boolean flag", () => {
-    // `--all` takes no value; the trailing id is a positional, not its value.
-    const r = execBd(
-      { subcommand: "list", args: ["--all", "ai-home-1463"], ...passPolicy },
+  test("exempts a flag VALUE that is exactly a bare id (id-position only)", () => {
+    // bd's resolver fuzzy-matches POSITIONALS, not flag values — a bare id in
+    // `--notes`/`--from`/etc. is never miswired, so the guard must admit it.
+    const space = execBd(
+      { subcommand: "update", args: ["--notes", "ai-home-1463"], localPrefix: "prx", ...passPolicy },
       {},
       noopSpawn,
     );
-    expect(r.exitCode).toBe(1);
-    expect(r.stderr).toMatch(REFUSAL);
-  });
-
-  test("refuses a bare id carried in an inline --flag=<id>", () => {
-    const r = execBd(
-      { subcommand: "update", args: ["--parent=GH-1463"], ...passPolicy },
+    expect(space.stderr).not.toMatch(REFUSAL);
+    const inline = execBd(
+      { subcommand: "update", args: ["--notes=ai-home-1463"], localPrefix: "prx", ...passPolicy },
       {},
       noopSpawn,
     );
-    expect(r.exitCode).toBe(1);
-    expect(r.stderr).toMatch(REFUSAL);
+    expect(inline.stderr).not.toMatch(REFUSAL);
   });
 
   test("admits an alpha-tail short id (not fuzzy-matchable) and a canonical long id", () => {

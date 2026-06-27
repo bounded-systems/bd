@@ -215,40 +215,30 @@ function isRefusableShortId(arg: string, localPrefix?: string): boolean {
 
 /**
  * Scan a bd argv for a refusable bare short id in an id position, returning the
- * offending arg (or null). Scoped to id-position, but hardened against the two
- * ways a bare id can hide behind a flag:
- *   - `--flag value` (space form): the value token is normally the flag's value
- *     and skipped — UNLESS it is itself a refusable bare id (a positional hidden
- *     after a value-less/boolean flag, or a bare id passed as a flag value),
- *     which is then inspected rather than silently consumed.
- *   - `--flag=value` (inline): the value after `=` is inspected too.
- * Free-text flag values (`--notes "...ai-home-1463..."`) are not bare ids (the
- * anchored regex won't match a string with surrounding text), so they stay
- * exempt. A canonical long id is admitted via {@link BD_LONG_ID_RE}. Native
- * ids (prefix === `localPrefix`) are admitted via {@link isRefusableShortId}.
- * Pure structural gate — no lookup.
+ * offending arg (or null). Scoped to id-position only: `--flag` tokens and the
+ * value token after a space-form `--flag value` are skipped. Flag VALUES are
+ * exempt by design — bd's id resolver only fuzzy-matches POSITIONALS, so a bare
+ * id passed as a flag value (`--notes "ai-home-1463"`, `--from <id>`) is never
+ * miswired and must not be refused. A canonical long id is admitted via
+ * {@link BD_LONG_ID_RE}; native ids (prefix === `localPrefix`) via
+ * {@link isRefusableShortId}; an uppercase foreign surface form (`GH-1463`) in
+ * id position is refused (the regex is case-insensitive). Pure structural gate —
+ * no lookup.
  */
 function findShortIdPositional(args: string[], localPrefix?: string): string | null {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === undefined) continue;
     if (arg.startsWith("-")) {
-      // `--flag=value` (inline): a bare id in the value is still a refusable ref
-      // (e.g. `--parent=GH-1463`); free-text values won't match the anchored RE.
-      const eq = arg.indexOf("=");
-      if (eq !== -1) {
-        const value = arg.slice(eq + 1);
-        if (isRefusableShortId(value, localPrefix)) return value;
-        continue;
-      }
-      // `--flag value` (space form): skip the value token — but never skip one
-      // that is itself a refusable bare id (a positional hidden after a
-      // value-less/boolean flag escapes the guard otherwise).
-      if (arg.startsWith("--")) {
+      // `--flag value` (space form): the next token is the flag's value, not an
+      // id position. `--flag=value` carries its value inline — nothing to skip.
+      // Flag VALUES are exempt by design: bd's id resolver only runs on
+      // positionals, so a bare id in `--notes`/`--from`/etc. is never
+      // fuzzy-matched (a `--notes "ai-home-1463"` note is just text). The guard
+      // is id-position-only on purpose.
+      if (arg.startsWith("--") && !arg.includes("=")) {
         const next = args[i + 1];
-        if (next !== undefined && !next.startsWith("-") && !isRefusableShortId(next, localPrefix)) {
-          i += 1;
-        }
+        if (next !== undefined && !next.startsWith("-")) i += 1;
       }
       continue;
     }

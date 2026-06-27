@@ -1,5 +1,15 @@
 # @bounded-systems/bd
 
+## 0.3.1
+
+### Patch Changes
+
+- bd-safe I-BF1 guard: keep flag VALUES exempt (id-position only). 0.3.0
+  over-tightened — it inspected `--flag value` / `--flag=value` and refused a
+  bare id there, which false-positives a legitimate `--notes "ai-home-1463"`
+  (bd's resolver fuzzy-matches positionals, not flag values). Native-id
+  admission and case-insensitive id-position refusal (GH-/NOTION-) are retained.
+
 ## 0.3.0
 
 ### Minor Changes
