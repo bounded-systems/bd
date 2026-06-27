@@ -1,0 +1,30 @@
+src/__tests__/runners.test.ts
+  s_399e6065f1b4a3::t_01df4c5b19f720 174-178,182-184,188
+src/index.ts
+  s_399e6065f1b4a3::t_e84f502e1bc338 218-226
+  s_399e6065f1b4a3::t_b56374c7d412e1 233-239,241
+jsr.json
+  s_399e6065f1b4a3::t_14c9b52cb0a8bd 3
+package.json
+  s_399e6065f1b4a3::t_bc1a47f15c1f65 3
+.release/narrow-flag-exemption.md
+  s_399e6065f1b4a3::t_8b27e8c5fd953f 1-4
+CHANGELOG.md
+  s_399e6065f1b4a3::t_ab39bc7faf21a6 3-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "82aaabcd52c52ec57d6d10a262f4741b09b99d8d",
+  "prompts": {},
+  "sessions": {
+    "s_399e6065f1b4a3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2a796dc6-3857-431d-90c5-9799f8d4865b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Robert DeLanghe <1240090+bdelanghe@users.noreply.github.com>"
+    }
+  }
+}
