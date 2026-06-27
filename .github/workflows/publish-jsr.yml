@@ -1,4 +1,7 @@
 name: publish-jsr
+# Tokenless OIDC publish to JSR on a v* release tag. Idempotent: if the version
+# in jsr.json is already on JSR, it skips (so back-tagging an already-published
+# version is a green no-op, not a failed re-publish).
 on:
   workflow_dispatch:
   push:
@@ -16,4 +19,12 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with: { bun-version: 1.3.14 }
       - run: bun install --frozen-lockfile
-      - run: bunx jsr publish --allow-slow-types
+      - name: Publish to JSR (skip if version already published)
+        run: |
+          pkg=$(grep "\"name\"" jsr.json | head -1 | sed "s/.*\"name\"[: ]*\"//;s/\".*//")
+          ver=$(grep "\"version\"" jsr.json | head -1 | sed "s/.*\"version\"[: ]*\"//;s/\".*//")
+          if curl -sfL "https://jsr.io/${pkg}/${ver}_meta.json" >/dev/null 2>&1; then
+            echo "::notice::${pkg}@${ver} already on JSR — skipping publish"
+          else
+            bunx jsr publish --allow-slow-types
+          fi

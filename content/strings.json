@@ -1,0 +1,14 @@
+{
+  "name": {
+    "type": "name",
+    "value": "bd"
+  },
+  "description": {
+    "type": "meta",
+    "value": "A typed interface to the beads (bd) CLI, with policy enforcement and short-ID guards.  Rather than shell out to bd ad hoc, callers use typed operations whose inputs and outputs are schema-validated.  Subcommands are policy-gated, and short-ID guards catch the ambiguous-id foot…"
+  },
+  "keywords": {
+    "type": "body",
+    "value": "BEADS · BD · CLI-WRAPPER · POLICY · ISSUES"
+  }
+}

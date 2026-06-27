@@ -1,10 +1,13 @@
 {
   "name": "@bounded-systems/bd",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Typed interface to the beads CLI with policy enforcement and short-ID guards",
   "bounded": {
     "tagline": "Typed interface to the beads CLI with policy enforcement and short-ID guards",
-    "kind": "door"
+    "kind": "door",
+    "facet": "verb",
+    "role": "client",
+    "domain": "beads/tasks"
   },
   "license": "MIT",
   "type": "module",
@@ -44,19 +47,22 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "schema:gen": "bun run scripts/gen-schema-types.ts",
+    "schema:check": "bun run scripts/gen-schema-types.ts --check"
   },
   "peerDependencies": {
     "zod": "^3.25.0 || ^4.0.0"
   },
   "devDependencies": {
+    "@bounded-systems/schema-gen": "npm:@jsr/bounded-systems__schema-gen@^0.1.0",
     "@types/bun": "^1.3.14",
     "typescript": "^6.0.3",
     "zod": "^4.4.3"
   },
   "dependencies": {
-    "@bounded-systems/env": "npm:@jsr/bounded-systems__env",
-    "@bounded-systems/policy": "npm:@jsr/bounded-systems__policy",
-    "@bounded-systems/proc": "npm:@jsr/bounded-systems__proc"
+    "@bounded-systems/env": "npm:@jsr/bounded-systems__env@^0.2.0",
+    "@bounded-systems/policy": "npm:@jsr/bounded-systems__policy@^0.2.1",
+    "@bounded-systems/proc": "npm:@jsr/bounded-systems__proc@^0.2.3"
   }
 }

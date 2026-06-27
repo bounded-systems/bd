@@ -5,6 +5,8 @@
  * Used by:
  *   - `prx tools bd exec` (CLI entry point, replaces scripts/bd-safe)
  *   - Internal callers (direct function calls)
+ *
+ * @module
  */
 
 import { z } from "zod";
@@ -25,19 +27,69 @@ import {
   type PolicyDecision,
 } from "@bounded-systems/policy";
 
+import {
+  bdShowOutputSchema,
+  bdDuplicatesClusterMemberSchema,
+  bdDuplicatesClusterSchema,
+  bdDoctorIssueSchema,
+  bdDoctorReportSchema,
+  bdMergeResultSchema,
+} from "./schemas.js";
+import type {
+  BdShowOutput,
+  BdDuplicatesClusterMember,
+  BdDuplicatesCluster,
+  BdDoctorIssue,
+  BdDoctorReport,
+  BdMergeResultPayload,
+} from "./types.generated.js";
+
+// Re-export public types from dependencies
+export type { SpawnCaptureResult, SpawnCaptureFn } from "@bounded-systems/proc";
+export type {
+  PolicyState,
+  PolicyRole,
+  PolicyDecision,
+} from "@bounded-systems/policy";
+
+// Re-export generated types
+export type {
+  BdShowOutput,
+  BdDuplicatesClusterMember,
+  BdDuplicatesCluster,
+  BdDoctorIssue,
+  BdDoctorReport,
+  BdMergeResultPayload,
+};
+
+/**
+ * Result from executing a bd subcommand with optional policy enforcement.
+ * Contains exit code, stdout/stderr, and the policy decision that was made.
+ */
 export type BdExecResult = {
+  /** Exit code from the bd process. */
   exitCode: number;
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd or the wrapper. */
   stderr: string;
+  /** Policy decision for this operation, or null if no policy was checked. */
   policy: PolicyDecision | null;
 };
 
+/**
+ * Options for executing a bd subcommand via execBd.
+ */
 export type BdExecOptions = {
+  /** The bd subcommand to execute (e.g., "show", "update", "list"). */
   subcommand: string;
+  /** Arguments to pass to the subcommand. */
   args: string[];
+  /** Working directory for the bd process. */
   cwd?: string | undefined;
-  /** If set, enforce policy before executing. */
+  /** Optional policy state to enforce; defaults to env.PRX_CAPABILITY_STATE or "validating". */
   state?: PolicyState | undefined;
+  /** Optional policy role to enforce; defaults to env.PRX_AGENT_ROLE or "executor". */
   role?: PolicyRole | undefined;
   /**
    * The local workspace prefix (e.g. `"prx"`). A short id with THIS prefix is a
@@ -48,8 +100,13 @@ export type BdExecOptions = {
   localPrefix?: string | undefined;
 };
 
+/**
+ * Environment variables that control bd execution and policy enforcement.
+ */
 export type BdExecEnv = {
+  /** Serialized policy state (e.g., "validating", "planning", "implementing"). */
   PRX_CAPABILITY_STATE?: string;
+  /** Policy role identifier (e.g., "planner", "executor", "reviewer"). */
   PRX_AGENT_ROLE?: string;
   /**
    * The served clone's workspace prefix (e.g. `"prx"`). Admits native short ids
@@ -58,6 +115,7 @@ export type BdExecEnv = {
    * Mirrors how `PRX_CAPABILITY_STATE`/`PRX_AGENT_ROLE` back `state`/`role`.
    */
   PRX_BEADS_PREFIX?: string;
+  /** Base directory for beads data (cleared during spawn to isolate from ~/.config/worktrunk). */
   BEADS_DIR?: string;
   /**
    * The beadsd door name, set by the box profile (prx-asr / prx-634). Its
@@ -66,6 +124,7 @@ export type BdExecEnv = {
    * unset = host profile (spawn `bd` as before).
    */
   PRX_BEADS_DOOR?: string;
+  /** Arbitrary environment variables passed to the bd process. */
   [key: string]: string | undefined;
 };
 
@@ -206,8 +265,22 @@ function findShortIdPositional(args: string[], localPrefix?: string): string | n
 // partial bytes silently surface as the result. `BdSpawnFn` / `BdSpawnResult`
 // stay aliased here so callers / tests that already import them keep working.
 
+/**
+ * Type alias for the spawn-capture result. Exported for backwards compatibility
+ * with callers that import this type.
+ */
 export type BdSpawnResult = SpawnCaptureResult;
+
+/**
+ * Type alias for the spawn-capture function. Exported for backwards compatibility
+ * with callers that import this type.
+ */
 export type BdSpawnFn = SpawnCaptureFn;
+
+/**
+ * Default spawn implementation using spawnCapture from @bounded-systems/proc.
+ * Injected into execBd for testing; production never passes this explicitly.
+ */
 export const defaultBdSpawn: BdSpawnFn = spawnCapture;
 
 // beadsd door seam (prx-asr / prx-634) ---------------------------------------
@@ -225,6 +298,11 @@ export const defaultBdSpawn: BdSpawnFn = spawnCapture;
 // registers the production dialer at CLI startup ({@link registerBdDoorDialer}).
 // A dialer returns a {@link BdExecResult} when it served the request over the
 // door, or `null` when the op is not expressible there (caller fails closed).
+/**
+ * Function type for routing bd operations through the beadsd door in box mode.
+ * Returns a result when the door handled the request, or null to fall back to
+ * the host profile spawn path.
+ */
 export type BdDoorDialer = (opts: BdExecOptions, env: BdExecEnv) => BdExecResult | null;
 
 let registeredDoorDialer: BdDoorDialer | undefined;
@@ -429,6 +507,10 @@ export function execBd(
   };
 }
 
+/**
+ * Format a BdExecResult for output as either plain text or JSON.
+ * In plain text mode, returns stdout or stderr (on failure); in JSON mode, returns the full result.
+ */
 export function formatBdExecResult(result: BdExecResult, format: "plain" | "json"): string {
   if (format === "json") {
     return JSON.stringify(result, null, 2);
@@ -460,14 +542,28 @@ export function formatBdExecResult(result: BdExecResult, format: "plain" | "json
 // (src/pr-state/cli.ts), which spawns it inline (not via this helper) and
 // is intentionally exempt: bd has no data to lose at seed time.
 
+/**
+ * Result from running a command via BdGithubRunner (bd or auxiliary commands like gh auth token).
+ */
 export type BdGithubRunResult = { stdout: string; stderr: string; status: number };
 
+/**
+ * Function type for running bd and auxiliary commands (e.g., gh auth token).
+ * Injects door mode gates to avoid spawning local bd in box profiles.
+ */
 export type BdGithubRunner = (
   cmd: string[],
   options?: { cwd?: string; env?: NodeJS.ProcessEnv; check?: boolean },
 ) => BdGithubRunResult;
 
-export const defaultBdGithubRunner: BdGithubRunner = (cmd, options = {}) => {
+/**
+ * Default implementation of BdGithubRunner using spawnCapture.
+ * Respects door mode (prx-asr / prx-634) when PRX_BEADS_DOOR is set.
+ */
+export const defaultBdGithubRunner: BdGithubRunner = (
+  cmd: string[],
+  options: { cwd?: string; env?: NodeJS.ProcessEnv; check?: boolean } = {},
+): BdGithubRunResult => {
   // Door mode (box profile): this runner is one bd-spawn seam (the `runBd*`
   // helpers — show/update/sync/doctor/merge/compact). The shared gate dials the
   // door or fails closed for `bd` invocations, never spawning a local `bd`;
@@ -501,14 +597,10 @@ export const defaultBdGithubRunner: BdGithubRunner = (cmd, options = {}) => {
 };
 
 /**
- * Resolve a GITHUB_TOKEN env override for `bd github` calls. Returns
- * `undefined` when the parent process already exports GITHUB_TOKEN (caller
- * should pass its own env unmodified). Falls back to `gh auth token` when the
- * env is empty so headless prx invocations inherit the operator's gh login.
- *
- * When falling back to `gh auth token`, returns a **merged** env
- * (`{ ...processEnv(), GITHUB_TOKEN: token }`) so callers retain PATH/HOME and
- * other parent vars `bd` needs to locate config and helper binaries (GH-987).
+ * Resolve a GITHUB_TOKEN for `bd github sync` calls.
+ * Returns undefined if GITHUB_TOKEN is already set in the environment.
+ * Falls back to `gh auth token` when missing, returning a merged env dict.
+ * Used by {@link runBdGithubSyncPullOnly} to support headless execution.
  */
 export function resolveBeadsGitHubSyncEnv(
   cwd: string,
@@ -532,19 +624,22 @@ export function resolveBeadsGitHubSyncEnv(
   return { ...processEnv(), GITHUB_TOKEN: token };
 }
 
+/**
+ * Result from running `bd github sync --pull-only` via {@link runBdGithubSyncPullOnly}.
+ */
 export type BdGithubSyncResult = {
+  /** Exit code from the bd process. */
   exitCode: number;
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd. */
   stderr: string;
 };
 
 /**
- * Run `bd github sync --pull-only --prefer-github` from `cwd`. Resolves
- * GITHUB_TOKEN via `resolveBeadsGitHubSyncEnv` so the call works under headless
- * prx invocations that inherit only `gh auth token` for credentials.
- *
- * Set `options.dryRun = true` to append `--dry-run` (used by
- * `prx repo protect-main` when previewing the post-config sync).
+ * Run `bd github sync --pull-only --prefer-github` from `cwd`.
+ * Resolves GITHUB_TOKEN via `resolveBeadsGitHubSyncEnv` for headless execution.
+ * Set `options.dryRun = true` to append `--dry-run` (used by `prx repo protect-main`).
  */
 export function runBdGithubSyncPullOnly(
   cwd: string,
@@ -580,19 +675,29 @@ export function runBdGithubSyncPullOnly(
 // `--dry-run` short-circuits before the LLM call so the safety default
 // (`prx memory compact` defaults to dry-run) does not require a key.
 
+/**
+ * Result from compacting a single record via {@link runBdAdminCompact}.
+ */
 export type BdAdminCompactPerIdResult = {
+  /** The record ID that was compacted. */
   id: string;
+  /** Exit code from bd admin compact. */
   exitCode: number;
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd. */
   stderr: string;
 };
 
+/**
+ * Aggregated result from {@link runBdAdminCompact} across multiple records.
+ */
 export type BdAdminCompactResult = {
   /** Worst per-id exit code (0 when every id succeeded). */
   exitCode: number;
-  /** One row per id, in input order. */
+  /** Per-id results in input order. */
   results: BdAdminCompactPerIdResult[];
-};
+};;
 
 // `bd show --json` (GH-1766) ------------------------------------------------
 //
@@ -602,30 +707,17 @@ export type BdAdminCompactResult = {
 // session-entry hydrate banner and `BeadsResolver.fetch` actually read; a
 // follow-up cleanup will promote `BeadsRecord` to use this schema directly.
 
-export const bdShowOutputSchema = z
-  .object({
-    id: z.string(),
-    title: z.string().default(""),
-    description: z.string().nullish(),
-    status: z.string().default(""),
-    priority: z.number().int().nullish(),
-    issueType: z.string().nullish(),
-    labels: z.array(z.string()).nullish(),
-    blockedBy: z.array(z.string()).nullish(),
-    externalRef: z.string().nullish(),
-    externalRefs: z.record(z.string(), z.string()).nullish(),
-    metadata: z.record(z.string(), z.unknown()).nullish(),
-    sourceSystem: z.string().nullish(),
-    updatedAt: z.string().nullish(),
-  })
-  .passthrough();
-
-export type BdShowOutput = z.infer<typeof bdShowOutputSchema>;
-
+/**
+ * Result from `bd show <id> --json` — either the parsed record or an error.
+ */
 export type BdShowResult =
   | { ok: true; record: BdShowOutput; stdout: string; stderr: string }
   | { ok: false; exitCode: number; stdout: string; stderr: string };
 
+/**
+ * Fetch a single bd record by ID and parse the JSON output.
+ * Returns either the parsed record or an error result with diagnostics.
+ */
 export function runBdShow(
   id: string,
   cwd: string,
@@ -672,7 +764,7 @@ export function runBdShow(
       stderr: `bd show: schema mismatch: ${parsed.error.message}`,
     };
   }
-  return { ok: true, record: parsed.data, stdout: result.stdout, stderr: result.stderr };
+  return { ok: true, record: parsed.data as BdShowOutput, stdout: result.stdout, stderr: result.stderr };
 }
 
 // `bd update --claim` (GH-1766) ---------------------------------------------
@@ -683,12 +775,21 @@ export function runBdShow(
 // (planner role, all states; see src/tools/policy.ts) and is not in the
 // BLOCKED list.
 
+/**
+ * Result from running `bd update <id> --claim`.
+ */
 export type BdUpdateClaimResult = {
+  /** Exit code from bd update. */
   exitCode: number;
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd. */
   stderr: string;
 };
 
+/**
+ * Claim ownership of a bd record (planner role required).
+ */
 export function runBdUpdateClaim(
   id: string,
   cwd: string,
@@ -702,6 +803,10 @@ export function runBdUpdateClaim(
   };
 }
 
+/**
+ * Compact closed records for memory decay (GH-1513).
+ * Loops over ids and aggregates results. Requires ANTHROPIC_API_KEY unless dryRun is true.
+ */
 export function runBdAdminCompact(
   cwd: string,
   options: { dryRun: boolean; ids: string[] },
@@ -738,37 +843,29 @@ export function runBdAdminCompact(
 // split into dedicated functions so the mutating call site differs from the
 // read-only one in grep + audit logs.
 
-export const bdDuplicatesClusterMemberSchema = z
-  .object({
-    beadsId: z.string(),
-    title: z.string().default(""),
-    status: z.string().default(""),
-    priority: z.number().int().nullable().default(null),
-  })
-  .passthrough();
-export type BdDuplicatesClusterMember = z.infer<typeof bdDuplicatesClusterMemberSchema>;
-
-export const bdDuplicatesClusterSchema = z
-  .object({
-    target: bdDuplicatesClusterMemberSchema,
-    sources: z.array(bdDuplicatesClusterMemberSchema).min(1),
-  })
-  .passthrough();
-export type BdDuplicatesCluster = z.infer<typeof bdDuplicatesClusterSchema>;
-
 const bdDuplicatesPayloadSchema = z
   .object({
     clusters: z.array(bdDuplicatesClusterSchema).default([]),
   })
   .passthrough();
 
+/**
+ * Result from `bd duplicates --dry-run --json` — deduplication clusters and diagnostics.
+ */
 export type BdDuplicatesDryRunResult = {
+  /** Exit code from bd duplicates. */
   exitCode: number;
+  /** Detected duplicate clusters. */
   clusters: BdDuplicatesCluster[];
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd. */
   stderr: string;
 };
 
+/**
+ * Detect duplicate records via bd's content-hash heuristic (dry-run, read-only).
+ */
 export function runBdDuplicatesDryRun(
   cwd: string,
   runner: BdGithubRunner = defaultBdGithubRunner,
@@ -810,39 +907,35 @@ export function runBdDuplicatesDryRun(
   }
   return {
     exitCode: 0,
-    clusters: parsed.data.clusters,
+    clusters: parsed.data.clusters as BdDuplicatesCluster[],
     stdout: result.stdout,
     stderr: result.stderr,
   };
 }
 
-export const bdDoctorIssueSchema = z
-  .object({
-    category: z.string(),
-    count: z.number().int().nonnegative().default(0),
-    fixable: z.boolean().default(false),
-  })
-  .passthrough();
-export type BdDoctorIssue = z.infer<typeof bdDoctorIssueSchema>;
-
-export const bdDoctorReportSchema = z
-  .object({
-    total: z.number().int().nonnegative().default(0),
-    fixable: z.number().int().nonnegative().default(0),
-    issues: z.array(bdDoctorIssueSchema).default([]),
-  })
-  .passthrough();
-export type BdDoctorReport = z.infer<typeof bdDoctorReportSchema>;
-
+/**
+ * Default empty doctor report (all zeros, no issues).
+ */
 export const emptyBdDoctorReport: BdDoctorReport = bdDoctorReportSchema.parse({});
 
+/**
+ * Result from `bd doctor --json` or `bd doctor --fix --json` — health report and diagnostics.
+ */
 export type BdDoctorResult = {
+  /** Exit code from bd doctor. */
   exitCode: number;
+  /** Health report with issue counts and fixability. */
   report: BdDoctorReport;
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd. */
   stderr: string;
 };
 
+/**
+ * Parse bd doctor output from a BdGithubRunResult into a typed BdDoctorResult.
+ * Handles JSON parsing and schema validation.
+ */
 function parseBdDoctorReport(result: BdGithubRunResult, verb: string): BdDoctorResult {
   if (result.status !== 0) {
     return {
@@ -881,6 +974,9 @@ function parseBdDoctorReport(result: BdGithubRunResult, verb: string): BdDoctorR
   };
 }
 
+/**
+ * Run `bd doctor --json` to report health issues (read-only).
+ */
 export function runBdDoctorJson(
   cwd: string,
   runner: BdGithubRunner = defaultBdGithubRunner,
@@ -889,6 +985,9 @@ export function runBdDoctorJson(
   return parseBdDoctorReport(result, "bd doctor");
 }
 
+/**
+ * Run `bd doctor --fix --json` to detect and fix health issues.
+ */
 export function runBdDoctorFix(
   cwd: string,
   runner: BdGithubRunner = defaultBdGithubRunner,
@@ -897,28 +996,36 @@ export function runBdDoctorFix(
   return parseBdDoctorReport(result, "bd doctor --fix");
 }
 
-export const bdMergeResultSchema = z
-  .object({
-    target: z.string(),
-    sources: z.array(z.string()).default([]),
-    applied: z.boolean().default(false),
-  })
-  .passthrough();
-export type BdMergeResultPayload = z.infer<typeof bdMergeResultSchema>;
-
+/**
+ * Options for running `bd merge`.
+ */
 export type BdMergeOptions = {
+  /** Target record ID to merge other records into. */
   target: string;
+  /** Source record IDs to merge from. */
   sources: string[];
+  /** If true, append --dry-run to preview the merge. */
   dryRun?: boolean;
 };
 
+/**
+ * Result from `bd merge` — merge operation outcome and diagnostics.
+ */
 export type BdMergeResult = {
+  /** Exit code from bd merge. */
   exitCode: number;
+  /** Merge result with target, sources, and applied flag. */
   result: BdMergeResultPayload;
+  /** Standard output from bd. */
   stdout: string;
+  /** Standard error from bd. */
   stderr: string;
 };
 
+/**
+ * Merge source records into a target record.
+ * Empty sources list is rejected with exitCode 1.
+ */
 export function runBdMerge(
   cwd: string,
   options: BdMergeOptions,
