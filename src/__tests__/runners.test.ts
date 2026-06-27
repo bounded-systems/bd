@@ -94,6 +94,138 @@ describe("execBd", () => {
   });
 });
 
+// ── bd-safe short-id guard (GH-1473 / I-BF1, prx-3vow hardening) ──────────────
+//
+// The guard must REFUSE a fuzzy-matchable foreign ref in an id position while
+// ADMITTING a native, bd-assigned short id (prefix === the local workspace).
+// `refusing bd short id` in stderr is the guard's signature — asserting on it
+// isolates the guard from any downstream policy/spawn outcome.
+describe("bd-safe short-id guard (GH-1473 / I-BF1)", () => {
+  const REFUSAL = /refusing bd short id/;
+  // A spawn that no-ops so an ADMITTED id reaches a clean (non-refusal) result.
+  const noopSpawn: BdSpawnFn = (() => ({
+    status: 0,
+    signal: null,
+    stdout: "[]",
+    stderr: "",
+  })) as unknown as BdSpawnFn;
+  const passPolicy = { state: "planning", role: "planner" } as const;
+
+  test("refuses a native all-digit short id when no localPrefix is known", () => {
+    const r = execBd(
+      { subcommand: "update", args: ["prx-716", "--status", "open"], ...passPolicy },
+      {},
+      noopSpawn,
+    );
+    expect(r.exitCode).toBe(1);
+    expect(r.stderr).toMatch(REFUSAL);
+  });
+
+  test("ADMITS a native-prefix short id via opts.localPrefix (prx-3vow)", () => {
+    const r = execBd(
+      {
+        subcommand: "update",
+        args: ["prx-716", "--status", "open"],
+        localPrefix: "prx",
+        ...passPolicy,
+      },
+      {},
+      noopSpawn,
+    );
+    expect(r.stderr).not.toMatch(REFUSAL);
+  });
+
+  test("ADMITS a native-prefix short id via env PRX_BEADS_PREFIX", () => {
+    const r = execBd(
+      { subcommand: "update", args: ["prx-435", "--status", "open"], ...passPolicy },
+      { PRX_BEADS_PREFIX: "prx" },
+      noopSpawn,
+    );
+    expect(r.stderr).not.toMatch(REFUSAL);
+  });
+
+  test("still refuses a FOREIGN-prefix short id even when a localPrefix is set", () => {
+    const r = execBd(
+      {
+        subcommand: "update",
+        args: ["ai-home-1463", "--status", "open"],
+        localPrefix: "prx",
+        ...passPolicy,
+      },
+      {},
+      noopSpawn,
+    );
+    expect(r.exitCode).toBe(1);
+    expect(r.stderr).toMatch(REFUSAL);
+  });
+
+  test("refuses UPPERCASE surface ids GH-<n> / NOTION-<n> (case-insensitive)", () => {
+    for (const id of ["GH-1463", "NOTION-456"]) {
+      const r = execBd(
+        { subcommand: "update", args: [id, "--status", "open"], localPrefix: "prx", ...passPolicy },
+        {},
+        noopSpawn,
+      );
+      expect(r.exitCode).toBe(1);
+      expect(r.stderr).toMatch(REFUSAL);
+    }
+  });
+
+  test("refuses a short id hidden after a value-less/boolean flag", () => {
+    // `--all` takes no value; the trailing id is a positional, not its value.
+    const r = execBd(
+      { subcommand: "list", args: ["--all", "ai-home-1463"], ...passPolicy },
+      {},
+      noopSpawn,
+    );
+    expect(r.exitCode).toBe(1);
+    expect(r.stderr).toMatch(REFUSAL);
+  });
+
+  test("refuses a bare id carried in an inline --flag=<id>", () => {
+    const r = execBd(
+      { subcommand: "update", args: ["--parent=GH-1463"], ...passPolicy },
+      {},
+      noopSpawn,
+    );
+    expect(r.exitCode).toBe(1);
+    expect(r.stderr).toMatch(REFUSAL);
+  });
+
+  test("admits an alpha-tail short id (not fuzzy-matchable) and a canonical long id", () => {
+    const alpha = execBd(
+      { subcommand: "dep", args: ["add", "prx-tm7", "prx-h29"], ...passPolicy },
+      {},
+      noopSpawn,
+    );
+    expect(alpha.stderr).not.toMatch(REFUSAL);
+    const long = execBd(
+      {
+        subcommand: "update",
+        args: ["prx-1777491131716-7-abcd1234", "--status", "open"],
+        ...passPolicy,
+      },
+      {},
+      noopSpawn,
+    );
+    expect(long.stderr).not.toMatch(REFUSAL);
+  });
+
+  test("exempts a free-text flag value that merely mentions an id", () => {
+    const r = execBd(
+      {
+        subcommand: "update",
+        args: ["prx-zz", "--notes", "see ai-home-1463 for the root cause"],
+        localPrefix: "prx",
+        ...passPolicy,
+      },
+      {},
+      noopSpawn,
+    );
+    expect(r.stderr).not.toMatch(REFUSAL);
+  });
+});
+
 // ── execBd door mode (box profile: no local bd) ──────────────────────────────
 
 describe("execBd door mode (prx-asr / prx-634)", () => {
