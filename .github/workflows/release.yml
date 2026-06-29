@@ -1,0 +1,21 @@
+name: release
+
+# Release provenance via the bounded-systems mint capability. On a v<version> tag
+# (cut by `mint release`), emits the deterministic in-toto release Statement
+# (tag → version plan → commit), keyless-signs it (cosign/OIDC), and attaches it
+# to the GitHub release. The registry publish stays in its existing workflow;
+# this job owns VERSION + TAG provenance only. Pinned to an immutable mint commit
+# SHA; bump when mint tags.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # create / upload to the GitHub release
+  id-token: write   # OIDC — cosign keyless signing
+
+jobs:
+  release:
+    uses: bounded-systems/mint/.github/workflows/release-provenance.yml@v0.3.1 # mint
+    with:
+      ref: v0.3.1
