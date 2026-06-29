@@ -1,0 +1,17 @@
+# The one workflow. Opts into org-standard behaviors; logic lives in the reusable
+# bounded-systems/.github/.github/workflows/repo-standard.yml.
+name: standard
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  standard:
+    uses: bounded-systems/.github/.github/workflows/repo-standard.yml@d43c3280588ef05f4ead43426db1091d4cb8f520
+    with:
+      security: true
+      test: true
+      runtime: bun
+      test-command: "bun install --frozen-lockfile && bun run schema:check && bun run build && bun test && bunx jsr publish --dry-run --allow-slow-types"
