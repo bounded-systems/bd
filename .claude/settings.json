@@ -6,9 +6,20 @@
   },
   "hooks": {
     "SessionStart": [
-      { "matcher": "", "hooks": [
-        { "type": "command", "command": "bash .claude/inject-org-context.sh" }
-      ] }
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/inject-org-context.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(bash .claude/org-repair.sh)"
     ]
   }
 }
