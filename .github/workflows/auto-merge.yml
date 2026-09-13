@@ -25,9 +25,10 @@ name: auto-merge
 # the mint needs; nothing else is elevated — the arming identity is the App's,
 # never this token's.
 #
-# WHY THE PIN IS 2cd9ebc. That is `.github`#387, the commit that added
-# `_auto-merge.yml`. The broker door `pr-arm` (infra#637) is pinned to the SAME
-# SHA: under `workflow_call` the callee's ref is what the broker sees, so a
+# WHY THE PIN IS a0330ae. That is `.github`#399, the commit after which the
+# callee arms only when a CI context other than the claim is required (the
+# first pin, 2cd9ebc, was #387, which added the file). The broker door `pr-arm`
+# (infra#637, re-pinned in infra#650) is pinned to the SAME SHA: under `workflow_call` the callee's ref is what the broker sees, so a
 # caller on any other ref is refused at mint with a 401, and a re-roll of this
 # file is a door change first. The roll script refuses any template not pinned
 # here, so this constant and its GUARD must move together or the roll hard-fails.
@@ -56,4 +57,4 @@ jobs:
       contents: read
       id-token: write
     # SHA-pinned, per org policy — never a branch. The broker door pins this SHA too.
-    uses: bounded-systems/.github/.github/workflows/_auto-merge.yml@2cd9ebc0a2543b3ba11dc7673b351a9d1f6c9445
+    uses: bounded-systems/.github/.github/workflows/_auto-merge.yml@a0330aea1a9fc899ff1002bf52d20ef8d9b2edad
